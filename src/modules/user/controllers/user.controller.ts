@@ -16,8 +16,14 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.userService.create(dto);
+  async create(@Body() dto: CreateUserDto) {
+    // return this.userService.create(dto);
+    const user = await this.userService.create(dto);
+    return {
+      statusCode: 201,
+      message: 'User created successfully',
+      data: user,
+    };
   }
 
   @Get()
