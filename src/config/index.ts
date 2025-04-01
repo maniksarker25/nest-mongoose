@@ -1,4 +1,4 @@
 import appConfig from './app.config';
 import databaseConfig from './database.config';
-
-export default [appConfig, databaseConfig];
+import authConfig from './auth.config';
+export default [appConfig, databaseConfig, authConfig];

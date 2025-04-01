@@ -17,7 +17,6 @@ export class UserController {
 
   @Post()
   async create(@Body() dto: CreateUserDto) {
-    // return this.userService.create(dto);
     const user = await this.userService.create(dto);
     return {
       statusCode: 201,

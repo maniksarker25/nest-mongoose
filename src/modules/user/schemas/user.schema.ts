@@ -35,6 +35,8 @@ export class User extends Document {
 
   @Prop({ default: 'user' })
   role: 'user' | 'admin' | 'superAdmin';
+  @Prop()
+  passwordChangedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
