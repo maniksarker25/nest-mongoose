@@ -1,79 +1,115 @@
 import {
-  ArgumentsHost,
-  Catch,
   ExceptionFilter,
+  Catch,
+  ArgumentsHost,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { MongoServerError } from 'mongodb';
-import { Error as MongooseError } from 'mongoose';
+import mongoose from 'mongoose';
 import { ZodError } from 'zod';
+
+import { MongoServerError } from 'mongodb';
+import { TGenericErrorResponse } from '../errors/interfaces/error.interface';
+import handleZodError from '../errors/helpers/handleZodError';
+import handleValidationError from '../errors/helpers/handleValidationError';
+import handleDuplicateError from '../errors/helpers/handleDuplicateError';
+import handleCastError from '../errors/helpers/handleCastError';
 import { AppError } from '../errors/app-error';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const res = ctx.getResponse<Response>();
+    const req = ctx.getRequest<Request>();
 
-    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Something went wrong!';
-    let errorDetails: any = {};
+    let customError: TGenericErrorResponse = {
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Something went wrong!',
+      errorType: 'Unknow error',
+      errorSources: [],
+    };
 
-    // NestJS HttpException
-    if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      message = exception.message;
+    // Zod validation
+    if (exception instanceof ZodError) {
+      customError = handleZodError(exception);
     }
 
-    // MongoDB duplicate key error
+    // Mongoose validation
+    else if (exception instanceof mongoose.Error.ValidationError) {
+      customError = handleValidationError(exception);
+    }
+
+    // Duplicate key
     else if (
       exception instanceof MongoServerError &&
       exception.code === 11000
     ) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      const key = Object.keys(exception.keyValue)[0];
-      message = `${key} already exists`;
+      customError = handleDuplicateError(exception);
     }
 
-    // Mongoose validation error
-    else if (exception instanceof MongooseError.ValidationError) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      message = Object.values(exception.errors)
-        .map((val) => val.message)
-        .join(', ');
-      errorDetails = exception.errors;
+    // Cast Error (invalid ID)
+    else if (
+      exception instanceof mongoose.Error.CastError ||
+      (typeof exception === 'object' &&
+        exception !== null &&
+        'name' in exception &&
+        exception['name'] === 'CastError')
+    ) {
+      customError = handleCastError(exception as mongoose.Error.CastError);
     }
 
-    // Zod validation error
-    else if (exception instanceof ZodError) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      message = exception.issues.map((i) => i.message).join('. ') + '.';
-      errorDetails = { issues: exception.issues };
-    }
-
-    // AppError
+    // App-defined error
     else if (exception instanceof AppError) {
-      statusCode = exception.statusCode;
-      message = exception.message;
+      customError = {
+        statusCode: exception.statusCode,
+        message: exception.message,
+        errorSources: [],
+      };
     }
 
-    // CastError (Invalid Mongo ID)
-    else if (exception?.name === 'CastError') {
-      statusCode = HttpStatus.BAD_REQUEST;
-      message = `${exception?.value} is not a valid ID!`;
+    // Built-in NestJS HttpException
+    else if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const response = exception.getResponse();
+
+      const validationMessages =
+        typeof response === 'object' &&
+        response !== null &&
+        'message' in response
+          ? (response as any).message
+          : [];
+
+      const isArray = Array.isArray(validationMessages);
+
+      const errorSources = isArray
+        ? validationMessages.map((msg) => ({ path: '', message: msg }))
+        : [{ path: '', message: exception.message }];
+
+      const combinedMessage = isArray
+        ? validationMessages.join(', ') + '.'
+        : exception.message;
+
+      customError = {
+        statusCode: status,
+        message: combinedMessage,
+        errorType: 'Validation Failed',
+        errorSources,
+      };
     }
 
-    response.status(statusCode).json({
+    res.status(customError.statusCode).json({
       success: false,
-      message,
-      errorDetails,
-      path: request.url,
+      message: customError.message,
+      errorType: customError.errorType,
+      errorDetails: customError.errorSources,
+      path: req.originalUrl,
       timestamp: new Date().toISOString(),
       stack:
-        process.env.NODE_ENV === 'development' ? exception.stack : undefined,
+        process.env.NODE_ENV === 'development'
+          ? (exception as any)?.stack
+          : undefined,
     });
   }
 }

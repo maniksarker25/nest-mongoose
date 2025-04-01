@@ -1,26 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   TErrorSources,
   TGenericErrorResponse,
 } from '../interfaces/error.interface';
 
 const handleDuplicateError = (err: any): TGenericErrorResponse => {
-  // Extract value within double quotes using regex
-  const match = err.message.match(/"([^"]*)"/);
+  // Match something like: dup key: { email: "manik@example.com" }
+  const match = err.message.match(/dup key: { (.*): "([^"]+)" }/);
 
-  // The extracted value will be in the first capturing group
-  const extractedMessage = match && match[1];
+  const field = match?.[1] || '';
+  const value = match?.[2] || '';
+
+  const fullMessage = `${value} is already exists`;
+
   const errorSources: TErrorSources = [
     {
-      path: '',
-      message: `${extractedMessage} is already exists`,
+      path: field,
+      message: fullMessage,
     },
   ];
-  const statusCode = 400;
+
   return {
-    statusCode,
-    message: 'Duplicate Error',
+    statusCode: 400,
+    message: fullMessage,
+    errorType: 'Duplicate Entry',
     errorSources,
   };
 };

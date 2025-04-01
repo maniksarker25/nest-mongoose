@@ -8,18 +8,19 @@ const handleValidationError = (
   err: mongoose.Error.ValidationError,
 ): TGenericErrorResponse => {
   const errorSources: TErrorSources = Object.values(err.errors).map(
-    (val: mongoose.Error.ValidatorError | mongoose.Error.CastError) => {
-      return {
-        path: val?.path,
-        message: val.message,
-      };
-    },
+    (val: mongoose.Error.ValidatorError | mongoose.Error.CastError) => ({
+      path: val?.path,
+      message: val.message,
+    }),
   );
 
-  const statusCode = 400;
+  const combinedMessage =
+    errorSources.map((err) => err.message).join(', ') + '.';
+
   return {
-    statusCode,
-    message: 'Validation Error',
+    statusCode: 400,
+    message: combinedMessage,
+    errorType: 'Validation Failed',
     errorSources,
   };
 };
