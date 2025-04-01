@@ -1,22 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import configuration from '../config'; // ⬅️ Loads both app and database config
+import configuration from '../config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from 'src/modules/user/user.module';
-// import { UserModule } from './modules/user/user.module'; // Uncomment when ready
 
 @Module({
   imports: [
-    // ✅ Load environment + custom config globally
+    //  Load environment + custom config globally-------------------
     ConfigModule.forRoot({
       isGlobal: true,
       load: configuration,
       envFilePath: '.env',
     }),
 
-    // ✅ Mongoose config using values from `database.config.ts`
+    // Mongoose config using values from `database.config.ts`------------------
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,7 +25,7 @@ import { UserModule } from 'src/modules/user/user.module';
       }),
     }),
 
-    // ✅ Add your feature modules here
+    //  Add your feature modules here ------------
     UserModule,
   ],
   controllers: [AppController],
