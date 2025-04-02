@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import configuration from '../config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from 'src/modules/user/user.module';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
@@ -16,14 +16,17 @@ import { UserModule } from 'src/modules/user/user.module';
     }),
 
     // Mongoose config using values from `database.config.ts`------------------
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('database.uri'),
-        dbName: configService.get<string>('database.dbName'),
-      }),
-    }),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     uri: configService.get<string>('database.uri'),
+    //     dbName: configService.get<string>('database.dbName'),
+    //   }),
+    // }),
+
+    // from database module
+    DatabaseModule,
 
     //  Add your feature modules here ------------
     UserModule,
