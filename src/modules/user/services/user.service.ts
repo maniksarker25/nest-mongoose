@@ -8,16 +8,18 @@ import { NormalUser } from 'src/modules/normal-user/schemas/normal-user.schema';
 import { AppError } from 'src/common/errors/app-error';
 import { generateVerifyCode } from 'src/utils/generateVerifyCode';
 import registrationSuccessEmailBody from 'src/utils/email/registrationSuccessEmailBody';
+import { EmailService } from 'src/utils/sendEmail';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(NormalUser.name) private normalUserModel: Model<NormalUser>,
+    private readonly emailService: EmailService,
   ) {}
 
   // register user -------------
-  async registerUser(dto: CreateUserDto): Promise<NormalUser> {
+  async registerUser(dto: CreateUserDto): Promise<NormalUser | undefined> {
     const { email, password, confirmPassword, ...userData } = dto;
     if (password !== confirmPassword) {
       throw new AppError(
@@ -59,20 +61,17 @@ export class UserService {
         { session },
       );
 
-      // await sendEmail({
-      //   email,
-      //   subject: 'Activate Your Account',
-      //   html: registrationSuccessEmailBody(result[0].name, user[0].verifyCode),
-      // });
+      await this.emailService.sendEmail({
+        email,
+        subject: 'Activate Your Account',
+        html: registrationSuccessEmailBody(result[0].name, user[0].verifyCode),
+      });
 
       await session.commitTransaction();
       session.endSession();
 
       return result[0];
     } catch (error) {}
-
-    const user = new this.userModel(dto);
-    return user.save();
   }
 
   // get all user -------------------
