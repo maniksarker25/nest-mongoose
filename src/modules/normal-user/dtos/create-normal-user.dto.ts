@@ -9,6 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Gender } from '../enum/normal-user.enum';
+import { Optional } from '@nestjs/common';
 
 export class CreateNormalUserDto {
   @IsMongoId({ message: 'User ID must be a valid Mongo ID.' })
@@ -25,7 +26,8 @@ export class CreateNormalUserDto {
   @IsNumber({}, { message: 'Age must be a number.' })
   @Min(1, { message: 'Age must be at least 1.' })
   age?: number;
-
+  @Optional()
+  profile_image: string;
   @IsEnum(Gender, { message: 'Gender must be either male or female.' })
   gender: Gender;
 }
