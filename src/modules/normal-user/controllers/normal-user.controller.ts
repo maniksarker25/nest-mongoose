@@ -1,6 +1,13 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { UserService } from 'src/modules/user/services/user.service';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Patch,
+} from '@nestjs/common';
 import { NormalUserService } from '../services/normal-user.service';
+import { UpdateNormalUserDto } from '../dtos/update-normal-user.dto';
 
 @Controller('normal-user')
 export class NormalUserController {
@@ -12,6 +19,20 @@ export class NormalUserController {
     return {
       statusCode: HttpStatus.OK,
       message: 'User retrieved successfully',
+      data: result,
+    };
+  }
+
+  // update normal user
+  @Patch('update-user/:id')
+  async updateNormalUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateNormalUserDto,
+  ) {
+    const result = await this.normalUserService.updateNormalUser(id, dto);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User updated successfully',
       data: result,
     };
   }
