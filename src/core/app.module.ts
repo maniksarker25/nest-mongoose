@@ -16,16 +16,6 @@ import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
       envFilePath: '.env',
     }),
 
-    // Mongoose config using values from `database.config.ts`------------------
-    // MongooseModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: async (configService: ConfigService) => ({
-    //     uri: configService.get<string>('database.uri'),
-    //     dbName: configService.get<string>('database.dbName'),
-    //   }),
-    // }),
-
     // from database module
     DatabaseModule,
 

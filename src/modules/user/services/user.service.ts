@@ -1,14 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { NormalUser } from 'src/modules/normal-user/schemas/normal-user.schema';
-
-const generateVerifyCode = (): number => {
-  return Math.floor(10000 + Math.random() * 90000);
-};
+import { AppError } from 'src/common/errors/app-error';
+import { generateVerifyCode } from 'src/utils/generateVerifyCode';
+import registrationSuccessEmailBody from 'src/utils/email/registrationSuccessEmailBody';
 
 @Injectable()
 export class UserService {
@@ -17,8 +16,61 @@ export class UserService {
     @InjectModel(NormalUser.name) private normalUserModel: Model<NormalUser>,
   ) {}
 
-  // create user -------------
-  async registerUser(dto: CreateUserDto): Promise<User> {
+  // register user -------------
+  async registerUser(dto: CreateUserDto): Promise<NormalUser> {
+    const { email, password, confirmPassword, ...userData } = dto;
+    if (password !== confirmPassword) {
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        "Password and confirm password doesn't match",
+      );
+    }
+
+    const emailExist = await this.userModel.findOne({ email });
+    if (emailExist) {
+      throw new AppError(HttpStatus.BAD_REQUEST, 'This email already exists');
+    }
+    const session = await this.userModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      const verifyCode = generateVerifyCode();
+      const userDataPayload = {
+        email,
+        password,
+        role: 'user',
+        verifyCode,
+        codeExpireIn: new Date(Date.now() + 2 * 60000),
+      };
+
+      const user = this.userModel.create([userDataPayload], { session });
+      const normalUserPayload = {
+        ...userData,
+        user: user[0]._id,
+      };
+
+      const result = await this.normalUserModel.create([normalUserPayload], {
+        session,
+      });
+
+      await this.userModel.findByIdAndUpdate(
+        user[0]._id,
+        { profileId: result[0]._id },
+        { session },
+      );
+
+      // await sendEmail({
+      //   email,
+      //   subject: 'Activate Your Account',
+      //   html: registrationSuccessEmailBody(result[0].name, user[0].verifyCode),
+      // });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return result[0];
+    } catch (error) {}
+
     const user = new this.userModel(dto);
     return user.save();
   }
