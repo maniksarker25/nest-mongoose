@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+
 @Injectable()
 export class EmailService {
-  private transporter;
+  private transporter: nodemailer.Transporter;
+
   constructor(private configService: ConfigService) {
-    // Initialize the transporter with dynamic SMTP details
+    console.log(
+      this.configService.get<string>('smtp.host'),
+      parseInt(this.configService.get<string>('smtp.port') as string, 10),
+      this.configService.get<string>('smtp.mail'),
+      this.configService.get<string>('smtp.pass'),
+    );
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('smtp.host'),
       port: parseInt(this.configService.get<string>('smtp.port') as string, 10),
@@ -13,14 +20,9 @@ export class EmailService {
         user: this.configService.get<string>('smtp.mail'),
         pass: this.configService.get<string>('smtp.pass'),
       },
-    });
-  }
-  private getFormattedDate(): string {
-    const currentDate = new Date();
-    return currentDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
   }
 
@@ -30,11 +32,15 @@ export class EmailService {
     const mailOptions = {
       from: `${this.configService.get<string>('smtp.name')} <${this.configService.get<string>('smtp.mail')}>`,
       to: email,
-      date: this.getFormattedDate(),
-      signed_by: 'bdCalling.com',
       subject,
       html,
     };
-    await this.transporter.sendMail(mailOptions);
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      throw new Error('Email sending failed');
+    }
   }
 }

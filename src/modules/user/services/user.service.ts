@@ -6,10 +6,11 @@ import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { NormalUser } from 'src/modules/normal-user/schemas/normal-user.schema';
 import { AppError } from 'src/common/errors/app-error';
-import { generateVerifyCode } from 'src/utils/generateVerifyCode';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import registrationSuccessEmailBody from 'src/utils/email/registrationSuccessEmailBody';
-import { EmailService } from 'src/utils/sendEmail';
+import { EmailService } from 'src/common/utils/email/email.service';
+import registrationSuccessEmailBody from 'src/common/utils/body/registrationSuccessEmailBody';
+import { generateVerifyCode } from 'src/common/helpers/generateVerifyCode';
+
+// import { EmailService } from 'src/utils/sendEmail';
 
 @Injectable()
 export class UserService {
@@ -56,7 +57,7 @@ export class UserService {
         session,
       });
 
-      await this.emailService.sendEmail({
+      this.emailService.sendEmail({
         email,
         subject: 'Activate Your Account',
         html: registrationSuccessEmailBody(result[0].name, user[0].verifyCode),

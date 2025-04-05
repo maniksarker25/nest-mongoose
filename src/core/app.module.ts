@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { UserModule } from 'src/modules/user/user.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
-import { EmailService } from 'src/utils/sendEmail';
+import { EmailModule } from 'src/common/utils/email/email.module';
 
 @Module({
   imports: [
@@ -19,12 +19,13 @@ import { EmailService } from 'src/utils/sendEmail';
 
     // from database module
     DatabaseModule,
+    EmailModule,
 
     //  Add your feature modules here ------------
     UserModule,
     NormalUserModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService],
+  providers: [AppService],
 })
 export class AppModule {}
