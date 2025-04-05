@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UserModule } from 'src/modules/user/user.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
+import { EmailService } from 'src/utils/sendEmail';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
     NormalUserModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}

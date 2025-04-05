@@ -12,6 +12,6 @@ import { NormalUserService } from './services/normal-user.service';
   ],
   controllers: [NormalUserController],
   providers: [NormalUserService],
-  exports: [NormalUserService],
+  exports: [NormalUserService, MongooseModule],
 })
 export class NormalUserModule {}

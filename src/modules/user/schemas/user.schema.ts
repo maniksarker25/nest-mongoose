@@ -15,9 +15,6 @@ export interface UserModel extends Model<UserDocument> {
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({ required: true })
-  name: string;
-
   @Prop({ required: true, unique: true, lowercase: true })
   email: string;
 
@@ -29,6 +26,8 @@ export class User extends Document {
 
   @Prop({ default: false })
   isVerified: boolean;
+  @Prop({})
+  verifyCode: number;
 
   @Prop({ default: false })
   isDeleted: boolean;

@@ -2,11 +2,12 @@ import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
-import { CreateUserDto } from '../dtos/create-user.dto';
+import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { NormalUser } from 'src/modules/normal-user/schemas/normal-user.schema';
 import { AppError } from 'src/common/errors/app-error';
 import { generateVerifyCode } from 'src/utils/generateVerifyCode';
+import { CreateUserDto } from '../dtos/create-user.dto';
 import registrationSuccessEmailBody from 'src/utils/email/registrationSuccessEmailBody';
 import { EmailService } from 'src/utils/sendEmail';
 
@@ -19,7 +20,7 @@ export class UserService {
   ) {}
 
   // register user -------------
-  async registerUser(dto: CreateUserDto): Promise<NormalUser | undefined> {
+  async registerUser(dto: RegisterUserDto): Promise<NormalUser | undefined> {
     const { email, password, confirmPassword, ...userData } = dto;
     if (password !== confirmPassword) {
       throw new AppError(
@@ -45,7 +46,7 @@ export class UserService {
         codeExpireIn: new Date(Date.now() + 2 * 60000),
       };
 
-      const user = this.userModel.create([userDataPayload], { session });
+      const user = await this.userModel.create([userDataPayload], { session });
       const normalUserPayload = {
         ...userData,
         user: user[0]._id,
@@ -54,12 +55,6 @@ export class UserService {
       const result = await this.normalUserModel.create([normalUserPayload], {
         session,
       });
-
-      await this.userModel.findByIdAndUpdate(
-        user[0]._id,
-        { profileId: result[0]._id },
-        { session },
-      );
 
       await this.emailService.sendEmail({
         email,
@@ -71,7 +66,15 @@ export class UserService {
       session.endSession();
 
       return result[0];
-    } catch (error) {}
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error('Error during transaction:', error); // Log the error
+      throw new AppError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Transaction failed',
+      );
+    }
   }
 
   // get all user -------------------

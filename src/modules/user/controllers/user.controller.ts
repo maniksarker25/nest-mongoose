@@ -8,16 +8,16 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
-import { CreateUserDto } from '../dtos/create-user.dto';
+import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
+import { CreateUserDto } from '../dtos/create-user.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  async create(@Body() dto: CreateUserDto) {
-    const user = await this.userService.create(dto);
+  @Post('/register-user')
+  async registerUser(@Body() dto: RegisterUserDto) {
+    const user = await this.userService.registerUser(dto);
     return {
       statusCode: 201,
       message: 'User created successfully',
