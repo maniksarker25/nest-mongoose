@@ -4,13 +4,21 @@ import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
+import { NormalUser } from 'src/modules/normal-user/schemas/normal-user.schema';
+
+const generateVerifyCode = (): number => {
+  return Math.floor(10000 + Math.random() * 90000);
+};
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(NormalUser.name) private normalUserModel: Model<NormalUser>,
+  ) {}
 
   // create user -------------
-  async create(dto: CreateUserDto): Promise<User> {
+  async registerUser(dto: CreateUserDto): Promise<User> {
     const user = new this.userModel(dto);
     return user.save();
   }
