@@ -14,6 +14,8 @@ export class NormalUser extends Document {
   age: number;
   @Prop({ required: true, enum: Gender })
   gender: Gender;
+  @Prop()
+  profile_image: string;
 }
 
 export const NormalUserSchema = SchemaFactory.createForClass(NormalUser);
