@@ -8,6 +8,7 @@ import { DatabaseModule } from 'src/database/database.module';
 import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
 import { EmailModule } from 'src/common/utils/email/email.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SeedModule } from 'src/seed/seed.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     //  Add your feature modules here ------------
     UserModule,
     NormalUserModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
