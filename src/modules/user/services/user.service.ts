@@ -12,8 +12,6 @@ import { generateVerifyCode } from 'src/common/helpers/generateVerifyCode';
 import { verifyCodeDto } from '../dtos/verify-code.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-// import { EmailService } from 'src/utils/sendEmail';
-
 @Injectable()
 export class UserService {
   constructor(
@@ -101,6 +99,10 @@ export class UserService {
 
     return result;
   }
+
+  // async getMyProfile(userData:){
+
+  // }
 
   // get all user -------------------
   async findAll(): Promise<User[]> {

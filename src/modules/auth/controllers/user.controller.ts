@@ -15,7 +15,11 @@ export class AuthController {
   // login------
   @Post('login')
   async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+    const result = await this.authService.login(dto.email, dto.password);
+    return {
+      message: 'User login successfull',
+      data: result,
+    };
   }
 
   @Post('refresh-token')
