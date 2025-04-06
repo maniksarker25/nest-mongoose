@@ -7,12 +7,6 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    console.log(
-      this.configService.get<string>('smtp.host'),
-      parseInt(this.configService.get<string>('smtp.port') as string, 10),
-      this.configService.get<string>('smtp.mail'),
-      this.configService.get<string>('smtp.pass'),
-    );
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('smtp.host'),
       port: parseInt(this.configService.get<string>('smtp.port') as string, 10),

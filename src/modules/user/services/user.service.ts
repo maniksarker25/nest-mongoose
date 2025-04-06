@@ -9,6 +9,8 @@ import { AppError } from 'src/common/errors/app-error';
 import { EmailService } from 'src/common/utils/email/email.service';
 import registrationSuccessEmailBody from 'src/common/utils/body/registrationSuccessEmailBody';
 import { generateVerifyCode } from 'src/common/helpers/generateVerifyCode';
+import { verifyCodeDto } from '../dtos/verify-code.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 // import { EmailService } from 'src/utils/sendEmail';
 
@@ -29,7 +31,6 @@ export class UserService {
         "Password and confirm password doesn't match",
       );
     }
-
     const emailExist = await this.userModel.findOne({ email });
     if (emailExist) {
       throw new AppError(HttpStatus.BAD_REQUEST, 'This email already exists');
@@ -65,17 +66,40 @@ export class UserService {
 
       await session.commitTransaction();
       session.endSession();
-
       return result[0];
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      console.error('Error during transaction:', error); // Log the error
       throw new AppError(
         HttpStatus.INTERNAL_SERVER_ERROR,
         'Transaction failed',
       );
     }
+  }
+
+  // verify email with code
+  async verifyCode(dto: verifyCodeDto) {
+    const { email, code } = dto;
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new AppError(HttpStatus.NOT_FOUND, 'User not found');
+    }
+    if (user.codeExpireIn < new Date(Date.now())) {
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        'This code is expired , please resend verify code',
+      );
+    }
+    if (user.verifyCode != code) {
+      throw new AppError(HttpStatus.BAD_REQUEST, 'Code not matched');
+    }
+    const result = await this.userModel.findOneAndUpdate(
+      { email: dto.email },
+      { isVerified: true },
+      { new: true, runValidators: true },
+    );
+
+    return result;
   }
 
   // get all user -------------------
@@ -101,5 +125,19 @@ export class UserService {
   async remove(id: string): Promise<void> {
     const result = await this.userModel.findByIdAndDelete(id);
     if (!result) throw new NotFoundException('User not found');
+  }
+
+  // crone jobs ------------------------------------
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async handleUnverifiedUserCleanup() {
+    const now = new Date();
+    const result = await this.userModel.deleteMany({
+      isVerified: false,
+      codeExpireIn: { $lt: now },
+    });
+
+    if (result.deletedCount > 0) {
+      console.log(`🧹 Deleted ${result.deletedCount} unverified users`);
+    }
   }
 }

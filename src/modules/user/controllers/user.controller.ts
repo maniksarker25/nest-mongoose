@@ -6,11 +6,13 @@ import {
   Param,
   Put,
   Delete,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
+import { verifyCodeDto } from '../dtos/verify-code.dto';
 
 @Controller('users')
 export class UserController {
@@ -22,6 +24,16 @@ export class UserController {
       statusCode: 201,
       message: 'User created successfully',
       data: user,
+    };
+  }
+
+  @Post('/verify-code')
+  async verifyCode(@Body() dto: verifyCodeDto) {
+    const result = await this.userService.verifyCode(dto);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Your email verified successfully',
+      data: result,
     };
   }
 

@@ -29,6 +29,9 @@ export class User extends Document {
   @Prop({})
   verifyCode: number;
 
+  @Prop({})
+  codeExpireIn: Date;
+
   @Prop({ default: false })
   isDeleted: boolean;
 
@@ -41,11 +44,10 @@ export class User extends Document {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // the static method
-UserSchema.statics.isPasswordMatched = async function (
+UserSchema.methods.comparePassword = async function (
   plainPassword: string,
-  hashedPassword: string,
 ): Promise<boolean> {
-  return await bcrypt.compare(plainPassword, hashedPassword);
+  return await bcrypt.compare(plainPassword, this.password);
 };
 
 //  Pre-save hook: hash password
