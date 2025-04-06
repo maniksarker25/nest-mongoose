@@ -1,5 +1,4 @@
 import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
-
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtDecodedUser } from 'src/common/interfaces/jwt-decoded-user.interface';

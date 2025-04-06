@@ -36,10 +36,17 @@ export class SeedService {
         { session },
       );
 
-      await this.superAdminModel.create(
+      const superAdmin = await this.superAdminModel.create(
         [{ name: 'Mr admin', email, user: user[0]._id }],
         { session },
       );
+
+      await this.userModel.findByIdAndUpdate(
+        user[0]._id,
+        { profileId: superAdmin[0]._id },
+        { session },
+      );
+
       await session.commitTransaction();
       this.logger.log('✅ Super admin seeded successfully');
     } catch (error) {

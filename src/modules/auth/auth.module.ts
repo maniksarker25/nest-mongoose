@@ -7,6 +7,7 @@ import { User, UserSchema } from 'src/modules/user/schemas/user.schema';
 import { AuthService } from './services/auth.service';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './controllers/auth.controller';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -27,9 +28,10 @@ import { AuthController } from './controllers/auth.controller';
         },
       }),
     }),
+    // UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtModule, JwtAuthGuard],
 })
 export class AuthModule {}

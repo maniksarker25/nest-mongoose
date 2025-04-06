@@ -15,9 +15,8 @@ import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { verifyCodeDto } from '../dtos/verify-code.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Request } from 'express';
 import { JwtDecodedUser } from 'src/common/interfaces/jwt-decoded-user.interface';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('users')
 export class UserController {
@@ -44,9 +43,12 @@ export class UserController {
 
   @Get('get-my-profile')
   @UseGuards(JwtAuthGuard)
-  async getMyProfile(@Req() req: Request) {
+  async getMyProfile(
+    // @Req() req: Request,
+    @CurrentUser() currentUser: JwtDecodedUser,
+  ) {
     const result = await this.userService.getMyProfile(
-      req.user as JwtDecodedUser,
+      currentUser as JwtDecodedUser,
     );
     return {
       message: 'Your profile data is retrieved successfully',

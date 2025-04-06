@@ -33,5 +33,6 @@ import { SeedModule } from 'src/seed/seed.module';
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [],
 })
 export class AppModule {}

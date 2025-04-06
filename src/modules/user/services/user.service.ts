@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
@@ -58,6 +58,12 @@ export class UserService {
         session,
       });
 
+      await this.userModel.findByIdAndUpdate(
+        user[0]._id,
+        { profileId: result[0]._id },
+        { new: true, runValidators: true, session },
+      );
+
       this.emailService.sendEmail({
         email,
         subject: 'Activate Your Account',
@@ -104,7 +110,7 @@ export class UserService {
 
   async getMyProfile(userData: JwtDecodedUser) {
     if (userData?.role == USER_ROLE.user) {
-      return this.userModel.findById(userData.id);
+      return this.normalUserModel.findById(userData.profileId);
     } else if (1 == 1) {
       console.log('super admin is waiting');
     }

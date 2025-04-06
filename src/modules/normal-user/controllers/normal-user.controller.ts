@@ -37,8 +37,8 @@ export class NormalUserController {
 
   // update normal user
   @Patch('update-user/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(USER_ROLE.user)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(USER_ROLE.user)
   @UseInterceptors(SingleFileUpload(UploadField.PROFILE_IMAGE))
   @UsePipes(new ParseFormDataPipe(UpdateNormalUserDto))
   async updateNormalUser(
