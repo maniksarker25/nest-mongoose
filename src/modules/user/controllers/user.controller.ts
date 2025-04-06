@@ -7,12 +7,17 @@ import {
   Put,
   Delete,
   HttpStatus,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
-import { CreateUserDto } from '../dtos/create-user.dto';
 import { verifyCodeDto } from '../dtos/verify-code.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Request } from 'express';
+import { JwtDecodedUser } from 'src/common/interfaces/jwt-decoded-user.interface';
 
 @Controller('users')
 export class UserController {
@@ -33,6 +38,18 @@ export class UserController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Your email verified successfully',
+      data: result,
+    };
+  }
+
+  @Get('get-my-profile')
+  @UseGuards(JwtAuthGuard)
+  async getMyProfile(@Req() req: Request) {
+    const result = await this.userService.getMyProfile(
+      req.user as JwtDecodedUser,
+    );
+    return {
+      message: 'Your profile data is retrieved successfully',
       data: result,
     };
   }

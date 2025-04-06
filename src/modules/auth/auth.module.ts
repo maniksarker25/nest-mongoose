@@ -4,9 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { User, UserSchema } from 'src/modules/user/schemas/user.schema';
-import { AuthController } from './controllers/user.controller';
 import { AuthService } from './services/auth.service';
 import { UserModule } from '../user/user.module';
+import { AuthController } from './controllers/auth.controller';
 
 @Module({
   imports: [

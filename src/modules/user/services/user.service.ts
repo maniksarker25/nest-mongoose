@@ -11,6 +11,8 @@ import registrationSuccessEmailBody from 'src/common/utils/body/registrationSucc
 import { generateVerifyCode } from 'src/common/helpers/generateVerifyCode';
 import { verifyCodeDto } from '../dtos/verify-code.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { JwtDecodedUser } from 'src/common/interfaces/jwt-decoded-user.interface';
+import { USER_ROLE } from '../interfaces/user-role.type';
 
 @Injectable()
 export class UserService {
@@ -100,9 +102,13 @@ export class UserService {
     return result;
   }
 
-  // async getMyProfile(userData:){
-
-  // }
+  async getMyProfile(userData: JwtDecodedUser) {
+    if (userData?.role == USER_ROLE.user) {
+      return this.userModel.findById(userData.id);
+    } else if (1 == 1) {
+      console.log('super admin is waiting');
+    }
+  }
 
   // get all user -------------------
   async findAll(): Promise<User[]> {
