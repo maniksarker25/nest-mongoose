@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -26,8 +27,8 @@ import { Request } from 'express';
 export class NormalUserController {
   constructor(private readonly normalUserService: NormalUserService) {}
   @Get('get-all')
-  async getAllUser() {
-    const result = await this.normalUserService.getAllUser();
+  async getAllUser(@Query() query: Record<string, unknown>) {
+    const result = await this.normalUserService.getAllUser(query);
     return {
       statusCode: HttpStatus.OK,
       message: 'User retrieved successfully',
