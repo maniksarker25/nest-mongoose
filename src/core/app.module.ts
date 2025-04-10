@@ -19,14 +19,14 @@ import { SeedModule } from 'src/seed/seed.module';
       envFilePath: '.env',
     }),
 
-    // crone job service
+    // crone job -----------------
     ScheduleModule.forRoot(),
 
-    // from database module
+    // from database module ------------------
     DatabaseModule,
     EmailModule,
 
-    //  Add your feature modules here ------------
+    // feature modules here ------------
     UserModule,
     NormalUserModule,
     SeedModule,

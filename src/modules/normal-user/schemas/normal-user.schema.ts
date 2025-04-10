@@ -22,3 +22,4 @@ export class NormalUser extends Document {
 }
 
 export const NormalUserSchema = SchemaFactory.createForClass(NormalUser);
+NormalUserSchema.index({ name: 1, phone: 1 }); // indexing-------------
