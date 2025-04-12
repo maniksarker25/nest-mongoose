@@ -1,0 +1,97 @@
+name: Deploy on EC2
+
+# Triggers: When someone pushes or creates a PR to 'main' branch
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  # ----------------------------------------
+  # Build job: Runs on GitHub runner
+  # ----------------------------------------
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - uses: actions/checkout@v3
+
+      # 2. Set up Node.js (using latest LTS version)
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.15'
+
+      # 3. Install dependencies cleanly
+      # -- Use `ci` for reproducibility and speed
+      # -- `--ignore-scripts` skips postinstall scripts for extra security
+      - name: Install Dependencies
+        run: npm ci --ignore-scripts
+
+      # 4. Build the app (typically compiles TypeScript or bundles React)
+      - name: Build Project
+        run: npm run build
+
+      # 5. Create a tarball with only production files
+      # You can add more files (like `.env.production`) if needed
+      - name: Archive Production Build
+        run: tar -czf app.tar.gz dist package.json package-lock.json ecosystem.config.js
+
+      # 6. Upload archive to GitHub Actions as an artifact
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-build
+          path: app.tar.gz
+
+  # ----------------------------------------
+  # Deploy job: Needs build job to finish
+  # ----------------------------------------
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      # 1. Download build artifact (tar file created in build job)
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: app-build
+
+      # 2. Configure SSH securely
+      # -- Uses encrypted secret to avoid storing private key in code
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      # 3. Deploy to EC2 via SSH
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          # Upload build archive to EC2
+          scp app.tar.gz $EC2_USER@$EC2_HOST:~/app.tar.gz
+
+          # SSH into EC2 to deploy
+          ssh $EC2_USER@$EC2_HOST << 'EOF'
+            # Clean and recreate app directory
+            rm -rf ~/app && mkdir -p ~/app
+
+            # Extract the new build
+            tar -xzf ~/app.tar.gz -C ~/app
+            cd ~/app
+
+            # Install production dependencies only (faster, smaller)
+            npm ci --only=production
+
+            # Restart the app using PM2 (zero-downtime restarts)
+            pm2 delete nodejs-app || true
+            pm2 start dist/server.js --name nodejs-app

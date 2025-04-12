@@ -88,10 +88,10 @@ jobs:
           node-version: '20.15'
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: npm install --frozen-lockfile
 
       - name: Build Project
-        run: yarn build
+        run: npm run build
 
         # Configure SSH
       - name: Configure SSH
