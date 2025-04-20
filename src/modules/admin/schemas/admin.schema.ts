@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Gender } from 'src/modules/normal-user/enum/normal-user.enum';
 import { User } from 'src/modules/user/schemas/user.schema';
@@ -23,3 +23,5 @@ export class Admin extends Document {
   @Prop({ default: false })
   isDeleted: boolean;
 }
+
+export const AdminSchema = SchemaFactory.createForClass(Admin);
