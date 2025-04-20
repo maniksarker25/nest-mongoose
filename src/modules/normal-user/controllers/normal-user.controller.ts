@@ -27,7 +27,11 @@ import { Request } from 'express';
 export class NormalUserController {
   constructor(private readonly normalUserService: NormalUserService) {}
   @Get('get-all')
-  async getAllUser(@Query() query: Record<string, unknown>) {
+  async getAllUser(
+    @Query() query: Record<string, unknown>,
+    @Req() req: Request,
+  ) {
+    console.log();
     const result = await this.normalUserService.getAllUser(query);
     return {
       statusCode: HttpStatus.OK,
