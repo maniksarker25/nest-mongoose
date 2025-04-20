@@ -4,6 +4,7 @@ import { Admin, AdminSchema } from './schemas/admin.schema';
 import { AdminController } from './controllers/admin.controller';
 import { AdminService } from './services/admin.service';
 import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UserModule } from '../user/user.module';
       },
     ]),
     UserModule,
+    AuthModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

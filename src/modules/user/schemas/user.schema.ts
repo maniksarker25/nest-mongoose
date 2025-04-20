@@ -42,6 +42,9 @@ export class User extends Document {
   @Prop({ default: false })
   isDeleted: boolean;
 
+  @Prop({ default: true })
+  isActive: boolean;
+
   @Prop({ default: 'user' })
   role: 'user' | 'admin' | 'superAdmin';
   @Prop()

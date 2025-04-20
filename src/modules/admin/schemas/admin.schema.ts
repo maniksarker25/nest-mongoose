@@ -18,8 +18,6 @@ export class Admin extends Document {
   profile_image: string;
   @Prop()
   gender: Gender;
-  @Prop({ default: true })
-  isActive: boolean;
   @Prop({ default: false })
   isDeleted: boolean;
 }

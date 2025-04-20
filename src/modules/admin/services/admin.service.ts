@@ -1,11 +1,13 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Admin } from '../schemas/admin.schema';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import { CreateAdminDto } from '../dtos/create-admin.dto';
 import { AppError } from 'src/common/errors/app-error';
 import { User } from 'src/modules/user/schemas/user.schema';
 import { USER_ROLE } from 'src/modules/user/interfaces/user-role.type';
+import pick from 'src/common/helpers/pick';
+import calculatePagination from 'src/common/helpers/pagination-helper';
 @Injectable()
 export class AdminService {
   constructor(
@@ -14,6 +16,7 @@ export class AdminService {
   ) {}
 
   // create admin into db -------------
+
   async createAdminIntoDb(dto: CreateAdminDto) {
     const { password, confirmPassword, ...adminData } = dto;
     if (dto.password != dto.confirmPassword) {
@@ -24,7 +27,7 @@ export class AdminService {
     }
 
     const isExists = await this.userModel.findOne({ email: dto.email });
-    if (!isExists) {
+    if (isExists) {
       throw new AppError(HttpStatus.BAD_REQUEST, 'This email already exist');
     }
 
@@ -64,5 +67,80 @@ export class AdminService {
         'Transaction failed',
       );
     }
+  }
+
+  // get all admin from database
+  async getAllAdminFromDB(query: Record<string, unknown>) {
+    const filters = pick(query, ['searchTerm', 'email', 'gender']);
+    const paginationOptions = pick(query, [
+      'page',
+      'limit',
+      'sortBy',
+      'sortOrder',
+    ]);
+
+    const { searchTerm } = filters;
+    const { page, limit, skip, sortBy, sortOrder } =
+      calculatePagination(paginationOptions);
+
+    // sort conditions =======
+    const sortConditions: { [key: string]: 1 | -1 } = {};
+    if (sortBy && sortOrder) {
+      sortConditions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    }
+
+    // search condition ------
+    const searchConditions: any[] = [];
+    if (searchTerm) {
+      searchConditions.push({
+        $or: [
+          { name: { $regex: searchTerm, $options: 'i' } },
+          { email: { $regex: searchTerm, $options: 'i' } },
+        ],
+      });
+    }
+
+    if (query.isActive != undefined) {
+      searchConditions.push({ isActive: query.isActive });
+    }
+    if (query.gender) {
+      searchConditions.push({ gender: query.gender });
+    }
+
+    const queryConditions =
+      searchConditions.length > 0 ? { $and: searchConditions } : {};
+    const pipeline: PipelineStage[] = [
+      {
+        $match: queryConditions,
+      },
+      //   { $sort: sortConditions },
+      //   { $skip: skip },
+      //   { $limit: limit },
+      {
+        $facet: {
+          admins: [
+            { $sort: sortConditions },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          totalCount: [{ $count: 'totalCount' }],
+        },
+      },
+    ];
+    const result = await this.adminModel.aggregate(pipeline);
+    const admins = result[0].admins;
+    const totalCount = result[0].totalCount[0]
+      ? result[0].totalCount[0].totalCount
+      : 0;
+    const meta = {
+      page,
+      limit,
+      total: totalCount,
+      totalPage: Math.ceil(totalCount / limit),
+    };
+    return {
+      meta,
+      result: admins,
+    };
   }
 }

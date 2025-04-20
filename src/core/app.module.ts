@@ -9,6 +9,7 @@ import { NormalUserModule } from 'src/modules/normal-user/normal-user.module';
 import { EmailModule } from 'src/common/utils/email/email.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SeedModule } from 'src/seed/seed.module';
+import { AdminModule } from 'src/modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SeedModule } from 'src/seed/seed.module';
     UserModule,
     NormalUserModule,
     SeedModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
