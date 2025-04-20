@@ -1,5 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Gender } from 'src/modules/normal-user/enum/normal-user.enum';
 import { User } from 'src/modules/user/schemas/user.schema';
 @Schema({ timestamps: true })
 export class Admin extends Document {
@@ -15,6 +16,8 @@ export class Admin extends Document {
   age: number;
   @Prop()
   profile_image: string;
+  @Prop()
+  gender: Gender;
   @Prop({ default: true })
   isActive: boolean;
   @Prop({ default: false })
