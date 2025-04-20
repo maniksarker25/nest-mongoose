@@ -6,6 +6,7 @@ import { AdminService } from '../services/admin.service';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  // create admin --------------
   @Post('/create-admin')
   async createAdmin(@Body() dto: CreateAdminDto) {
     const result = await this.adminService.createAdminIntoDb(dto);
