@@ -15,4 +15,8 @@ export class Admin extends Document {
   age: number;
   @Prop()
   profile_image: string;
+  @Prop({ default: true })
+  isActive: boolean;
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
