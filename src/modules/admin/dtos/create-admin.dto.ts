@@ -27,4 +27,10 @@ export class CreateAdminDto {
   profile_image?: string;
   @IsEnum(Gender, { message: 'Gender must be male or female' })
   gender?: Gender;
+  @IsString({ message: 'Password must be string' })
+  @IsNotEmpty({ message: 'Password is required' })
+  password: string;
+  @IsNotEmpty({ message: 'Confirm password is required' })
+  @IsString({ message: 'Confirm password must be a string' })
+  confirmPassword: string;
 }
