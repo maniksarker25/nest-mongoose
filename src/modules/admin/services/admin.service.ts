@@ -15,7 +15,7 @@ export class AdminService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  // create admin into db -------------
+  // create admin into db ==================================>
 
   async createAdminIntoDb(dto: CreateAdminDto) {
     const { password, confirmPassword, ...adminData } = dto;
@@ -69,7 +69,7 @@ export class AdminService {
     }
   }
 
-  // get all admin from database
+  // get all admin from database =========================>
   async getAllAdminFromDB(query: Record<string, unknown>) {
     const filters = pick(query, ['searchTerm', 'email', 'gender']);
     const paginationOptions = pick(query, [
@@ -144,15 +144,17 @@ export class AdminService {
     };
   }
 
-  // change admin status
+  // change admin status ===========================>
   async changeAdminStatusIntoDB(id: string) {
-    const user = await this.userModel.findById(id).select('user');
+    const user = await this.userModel.findById(id).select('user isActive');
     if (!user) {
       throw new AppError(HttpStatus.NOT_FOUND, 'Admin user not found');
     }
 
     await this.userModel.findByIdAndUpdate(id, { isActive: !user.isActive });
-    const result = await this.adminModel.findOne({ user: id });
+    const result = await this.adminModel
+      .findOne({ user: id })
+      .populate({ path: 'user', select: 'isActive' });
     return result;
   }
 }
