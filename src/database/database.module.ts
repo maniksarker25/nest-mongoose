@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../config';
+
+// database module -------------
 @Module({
   imports: [
     ConfigModule.forRoot({

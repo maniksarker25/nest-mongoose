@@ -143,4 +143,16 @@ export class AdminService {
       result: admins,
     };
   }
+
+  // change admin status
+  async changeAdminStatusIntoDB(id: string) {
+    const user = await this.userModel.findById(id).select('user');
+    if (!user) {
+      throw new AppError(HttpStatus.NOT_FOUND, 'Admin user not found');
+    }
+
+    await this.userModel.findByIdAndUpdate(id, { isActive: !user.isActive });
+    const result = await this.adminModel.findOne({ user: id });
+    return result;
+  }
 }
